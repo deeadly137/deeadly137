@@ -37,8 +37,8 @@
         #player {
             position: absolute;
             bottom: 20px;
-            width: 50px;
-            height: 50px;
+            width: 68px;
+            height: 68px;
             background-image: url('assets/special/ratidle.gif');
             background-size: contain;
             background-repeat: no-repeat;
@@ -47,8 +47,8 @@
 
         .star {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             background-size: contain;
             background-repeat: no-repeat;
             z-index: 4;
@@ -80,7 +80,12 @@
         let playerPos = window.innerWidth / 2;
         let isMoving = false;
         let moveDirection = 0;
+        let lastDirection = 0; // Track last direction for dash
         const playerSpeed = 5;
+        const dashSpeed = 100; // Speed for dash (will cover 20% screen in ~1s)
+        let canDash = true;
+        let isDashing = false;
+        let dashTimeLeft = 0;
 
         // Set initial player position
         player.style.left = playerPos + 'px';
@@ -89,12 +94,23 @@
         document.addEventListener('keydown', function(e) {
             if (e.key.toLowerCase() === 'a') {
                 moveDirection = -1;
+                lastDirection = -1;
                 isMoving = true;
-                player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
+                if (!isDashing) {
+                    player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
+                }
             } else if (e.key.toLowerCase() === 'l') {
                 moveDirection = 1;
+                lastDirection = 1;
                 isMoving = true;
-                player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
+                if (!isDashing) {
+                    player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
+                }
+            } else if (e.key.toLowerCase() === ' ') {
+                // Space for dash
+                if (canDash && !isDashing) {
+                    startDash();
+                }
             }
         });
 
@@ -102,21 +118,54 @@
             if (e.key.toLowerCase() === 'a' || e.key.toLowerCase() === 'l') {
                 moveDirection = 0;
                 isMoving = false;
-                player.style.backgroundImage = "url('assets/special/ratidle.gif')";
+                if (!isDashing) {
+                    player.style.backgroundImage = "url('assets/special/ratidle.gif')";
+                }
             }
         });
 
+        function startDash() {
+            isDashing = true;
+            canDash = false;
+            dashTimeLeft = 16; // 16 frames = ~0.25 seconds of dash
+            
+            // Change to dash animation
+            player.style.backgroundImage = "url('assets/special/ratdash.gif')";
+            
+            // Use last direction if not currently moving
+            if (moveDirection === 0) {
+                moveDirection = lastDirection;
+            }
+        }
+
         // Movement loop
         function updatePlayerPosition() {
-            if (isMoving) {
+            if (isDashing) {
+                // Dash movement
+                playerPos += moveDirection * dashSpeed;
+                dashTimeLeft--;
+                
+                if (dashTimeLeft <= 0) {
+                    isDashing = false;
+                    moveDirection = 0;
+                    
+                    // Reset to idle after dash
+                    player.style.backgroundImage = "url('assets/special/ratidle.gif')";
+                    
+                    // Start cooldown
+                    setTimeout(() => {
+                        canDash = true;
+                    }, 2000); // 2 second cooldown
+                }
+            } else if (isMoving) {
                 playerPos += moveDirection * playerSpeed;
-                
-                // Keep player within screen bounds
-                if (playerPos < 0) playerPos = 0;
-                if (playerPos > window.innerWidth - 50) playerPos = window.innerWidth - 50;
-                
-                player.style.left = playerPos + 'px';
             }
+            
+            // Keep player within screen bounds
+            if (playerPos < 0) playerPos = 0;
+            if (playerPos > window.innerWidth - 68) playerPos = window.innerWidth - 68;
+            
+            player.style.left = playerPos + 'px';
         }
 
         // Falling stars
@@ -126,8 +175,8 @@
         function createStar() {
             const star = document.createElement('div');
             star.className = 'star ' + starTypes[Math.floor(Math.random() * starTypes.length)];
-            star.style.left = Math.random() * (window.innerWidth - 30) + 'px';
-            star.style.top = '-30px';
+            star.style.left = Math.random() * (window.innerWidth - 36) + 'px';
+            star.style.top = '-36px';
             star.speed = 2 + Math.random() * 3;
             gameContainer.appendChild(star);
             stars.push(star);
