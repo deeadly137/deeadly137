@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Not Found</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cube-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cubes-left {
+            position: absolute;
+            left: 20px;
+            top: 0;
+            width: 50px;
+            height: 100%;
+        }
+
+        .cubes-right {
+            position: absolute;
+            right: 20px;
+            top: 0;
+            width: 50px;
+            height: 100%;
+        }
+
+        .cube {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #8a2be2;
+            opacity: 0.7;
+            animation: floatUp 8s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Wiggle animation for cubes */
+        .cube:nth-child(odd) {
+            animation-name: floatUpWiggle;
+        }
+
+        @keyframes floatUpWiggle {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            25% {
+                transform: translateY(75vh) rotate(90deg) translateX(8px);
+            }
+            50% {
+                transform: translateY(50vh) rotate(180deg) translateX(-8px);
+            }
+            75% {
+                transform: translateY(25vh) rotate(270deg) translateX(8px);
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .password-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .password-label {
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .password-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .password-digit {
+            width: 50px;
+            height: 50px;
+            border: 2px solid white;
+            text-align: center;
+            font-size: 2em;
+            color: white;
+            background: transparent;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="cube-container">
+        <div class="cubes-left" id="cubes-left"></div>
+        <div class="cubes-right" id="cubes-right"></div>
+    </div>
+    
+    <div class="password-container">
+        <div class="password-label">Where dreams come true</div>
+        <div class="password-inputs">
+            <input type="text" class="password-digit" id="digit1" maxlength="1" onkeyup="checkPassword()">
+            <input type="text" class="password-digit" id="digit2" maxlength="1" onkeyup="checkPassword()">
+            <input type="text" class="password-digit" id="digit3" maxlength="1" onkeyup="checkPassword()">
+            <input type="text" class="password-digit" id="digit4" maxlength="1" onkeyup="checkPassword()">
+        </div>
+    </div>
+
+    <script>
+        // Generate cubes on left and right sides
+        function generateCubes() {
+            const leftContainer = document.getElementById('cubes-left');
+            const rightContainer = document.getElementById('cubes-right');
+            
+            for (let i = 0; i < 20; i++) {
+                const cube = document.createElement('div');
+                cube.className = 'cube';
+                cube.style.left = Math.random() * 30 + 'px';
+                cube.style.animationDelay = Math.random() * 8 + 's';
+                cube.style.width = (20 + Math.random() * 15) + 'px';
+                cube.style.height = cube.style.width;
+                leftContainer.appendChild(cube);
+            }
+            
+            for (let i = 0; i < 20; i++) {
+                const cube = document.createElement('div');
+                cube.className = 'cube';
+                cube.style.right = Math.random() * 30 + 'px';
+                cube.style.animationDelay = Math.random() * 8 + 's';
+                cube.style.width = (20 + Math.random() * 15) + 'px';
+                cube.style.height = cube.style.width;
+                rightContainer.appendChild(cube);
+            }
+        }
+
+        // Check password and redirect if correct
+        function checkPassword() {
+            const d1 = document.getElementById('digit1').value;
+            const d2 = document.getElementById('digit2').value;
+            const d3 = document.getElementById('digit3').value;
+            const d4 = document.getElementById('digit4').value;
+            
+            if (d1 + d2 + d3 + d4 === '1820') {
+                window.location.href = 'cheese.html';
+            }
+        }
+
+        // Auto-focus next input
+        document.querySelectorAll('.password-digit').forEach((input, index) => {
+            input.addEventListener('input', function() {
+                if (this.value.length === 1 && index < 3) {
+                    document.querySelectorAll('.password-digit')[index + 1].focus();
+                }
+            });
+        });
+
+        generateCubes();
+    </script>
+</body>
+</html>

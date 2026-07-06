@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheese Minigame</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .top-image {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .top-image img {
+            max-width: 300px;
+            width: 100%;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #player {
+            position: absolute;
+            bottom: 20px;
+            width: 50px;
+            height: 50px;
+            background-image: url('assets/special/ratidle.gif');
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 5;
+        }
+
+        .star {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 4;
+        }
+
+        .star1 { background-image: url('assets/special/star1.png'); }
+        .star2 { background-image: url('assets/special/star2.png'); }
+        .star3 { background-image: url('assets/special/star3.png'); }
+        .star4 { background-image: url('assets/special/star4.png'); }
+    </style>
+</head>
+<body>
+    <div class="top-image">
+        <img src="assets/background/InCaseImakeIt.png" alt="In Case I Make It">
+    </div>
+    
+    <div id="game-container">
+        <div id="player"></div>
+    </div>
+
+    <audio autoplay loop>
+        <source src="assets/sounds/WhatsForTheBest-Ealu.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('game-container');
+        let playerPos = window.innerWidth / 2;
+        let isMoving = false;
+        let moveDirection = 0;
+        const playerSpeed = 5;
+
+        // Set initial player position
+        player.style.left = playerPos + 'px';
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'a') {
+                moveDirection = -1;
+                isMoving = true;
+                player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
+            } else if (e.key.toLowerCase() === 'l') {
+                moveDirection = 1;
+                isMoving = true;
+                player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            if (e.key.toLowerCase() === 'a' || e.key.toLowerCase() === 'l') {
+                moveDirection = 0;
+                isMoving = false;
+                player.style.backgroundImage = "url('assets/special/ratidle.gif')";
+            }
+        });
+
+        // Movement loop
+        function updatePlayerPosition() {
+            if (isMoving) {
+                playerPos += moveDirection * playerSpeed;
+                
+                // Keep player within screen bounds
+                if (playerPos < 0) playerPos = 0;
+                if (playerPos > window.innerWidth - 50) playerPos = window.innerWidth - 50;
+                
+                player.style.left = playerPos + 'px';
+            }
+        }
+
+        // Falling stars
+        const starTypes = ['star1', 'star2', 'star3', 'star4'];
+        const stars = [];
+
+        function createStar() {
+            const star = document.createElement('div');
+            star.className = 'star ' + starTypes[Math.floor(Math.random() * starTypes.length)];
+            star.style.left = Math.random() * (window.innerWidth - 30) + 'px';
+            star.style.top = '-30px';
+            star.speed = 2 + Math.random() * 3;
+            gameContainer.appendChild(star);
+            stars.push(star);
+        }
+
+        function updateStars() {
+            stars.forEach((star, index) => {
+                const top = parseInt(star.style.top);
+                star.style.top = (top + star.speed) + 'px';
+
+                // Check collision with player
+                const starRect = star.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                
+                if (starRect.bottom > playerRect.top && 
+                    starRect.left < playerRect.right && 
+                    starRect.right > playerRect.left) {
+                    star.remove();
+                    stars.splice(index, 1);
+                    return;
+                }
+
+                // Remove stars that go off screen
+                if (top > window.innerHeight) {
+                    star.remove();
+                    stars.splice(index, 1);
+                }
+            });
+        }
+
+        // Game loop
+        setInterval(() => {
+            updatePlayerPosition();
+            updateStars();
+            if (Math.random() < 0.02) createStar();
+        }, 16);
+
+        // Initial stars
+        for (let i = 0; i < 5; i++) {
+            createStar();
+        }
+    </script>
+</body>
+</html>

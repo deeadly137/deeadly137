@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where your nightmares end...</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome back.</h1>
+        <div class="button-grid">
+            <div class="pokemon-container">
+                <img src="assets/sprites/decidueye.png" alt="Decidueye" class="pokemon-img" data-pokemon="decidueye">
+                <button class="pokemon-btn" onclick="goToDecidueye()">Decidueye</button>
+            </div>
+            <div class="pokemon-container">
+                <div class="pokemon-image-wrapper">
+                    <img src="assets/sprites/noibat.png" alt="Noibat" class="pokemon-img" id="noibat-img" data-pokemon="noibat">
+                    <div class="white-circle" id="noibat-circle"></div>
+                </div>
+                <button class="pokemon-btn" id="noibat-btn" onclick="goToNoibat()">Noibat</button>
+            </div>
+            <div class="pokemon-container">
+                <img src="assets/sprites/lunala.png" alt="Lunala" class="pokemon-img" data-pokemon="lunala">
+                <button class="pokemon-btn" onclick="goToLunala()">Lunala</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
