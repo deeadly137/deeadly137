@@ -18,25 +18,11 @@
 
         .cube-container {
             position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-        }
-
-        .cubes-left {
-            position: absolute;
-            left: 20px;
-            top: 0;
-            width: 50px;
-            height: 100%;
-        }
-
-        .cubes-right {
-            position: absolute;
-            right: 20px;
-            top: 0;
-            width: 50px;
-            height: 100%;
         }
 
         .cube {
@@ -113,6 +99,7 @@
         }
 
         .password-inputs {
+            position: relative;
             display: flex;
             gap: 10px;
         }
@@ -121,77 +108,118 @@
             width: 50px;
             height: 50px;
             border: 2px solid white;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 2em;
             color: white;
             background: transparent;
+        }
+
+        /* Invisible field that takes the typing; the boxes above only display its digits. */
+        .password-capture {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
             outline: none;
+            background: transparent;
+            opacity: 0;
+            cursor: text;
+            font-size: 16px; /* keeps mobile browsers from zooming in on focus */
+        }
+
+        /* Only visible while the code is being typed, so the resting look stays the same. */
+        .password-inputs:focus-within .password-digit {
+            border-color: #8a2be2;
         }
     </style>
 </head>
 <body>
-    <div class="cube-container">
-        <div class="cubes-left" id="cubes-left"></div>
-        <div class="cubes-right" id="cubes-right"></div>
-    </div>
+    <div class="cube-container" id="cube-container"></div>
     
     <div class="password-container">
         <div class="password-label">Where dreams come true</div>
         <div class="password-inputs">
-            <input type="text" class="password-digit" id="digit1" maxlength="1" onkeyup="checkPassword()">
-            <input type="text" class="password-digit" id="digit2" maxlength="1" onkeyup="checkPassword()">
-            <input type="text" class="password-digit" id="digit3" maxlength="1" onkeyup="checkPassword()">
-            <input type="text" class="password-digit" id="digit4" maxlength="1" onkeyup="checkPassword()">
+            <div class="password-digit" id="digit1"></div>
+            <div class="password-digit" id="digit2"></div>
+            <div class="password-digit" id="digit3"></div>
+            <div class="password-digit" id="digit4"></div>
+            <input type="text" class="password-capture" id="password-input" maxlength="4" inputmode="numeric"
+                   autocomplete="off" spellcheck="false" aria-label="Password">
         </div>
     </div>
 
     <script>
-        // Generate cubes on left and right sides
+        const PASSWORD = '1820';
+        const passwordInput = document.getElementById('password-input');
+        const digitBoxes = document.querySelectorAll('.password-digit');
+
+        const CUBE_COUNT = 60;
+        const CUBE_CLEARANCE = 24; // keeps cubes, and their 8px wiggle, clear of the password text
+
+        // Cubes drift up all over the page, but never through the middle where the password sits.
         function generateCubes() {
-            const leftContainer = document.getElementById('cubes-left');
-            const rightContainer = document.getElementById('cubes-right');
-            
-            for (let i = 0; i < 20; i++) {
+            const container = document.getElementById('cube-container');
+            const passwordArea = document.querySelector('.password-container').getBoundingClientRect();
+            const avoidStart = Math.max(passwordArea.left - CUBE_CLEARANCE, 0);
+            const avoidEnd = Math.min(passwordArea.right + CUBE_CLEARANCE, window.innerWidth);
+
+            for (let i = 0; i < CUBE_COUNT; i++) {
                 const cube = document.createElement('div');
+                const size = 20 + Math.random() * 15;
                 cube.className = 'cube';
-                cube.style.left = Math.random() * 30 + 'px';
-                cube.style.animationDelay = Math.random() * 8 + 's';
-                cube.style.width = (20 + Math.random() * 15) + 'px';
-                cube.style.height = cube.style.width;
-                leftContainer.appendChild(cube);
+                cube.style.left = randomCubeLeft(size, avoidStart, avoidEnd) + 'px';
+                // Negative delay drops each cube partway into its loop, so the page opens with
+                // cubes spread along the whole path instead of piled up at the top edge.
+                cube.style.animationDelay = -Math.random() * 8 + 's';
+                cube.style.width = size + 'px';
+                cube.style.height = size + 'px';
+                container.appendChild(cube);
             }
-            
-            for (let i = 0; i < 20; i++) {
-                const cube = document.createElement('div');
-                cube.className = 'cube';
-                cube.style.right = Math.random() * 30 + 'px';
-                cube.style.animationDelay = Math.random() * 8 + 's';
-                cube.style.width = (20 + Math.random() * 15) + 'px';
-                cube.style.height = cube.style.width;
-                rightContainer.appendChild(cube);
+        }
+
+        // Picks a left offset clear of the middle band, spreading cubes over both sides
+        // in proportion to how much room each side has.
+        function randomCubeLeft(size, avoidStart, avoidEnd) {
+            const leftSpan = Math.max(avoidStart - size, 0);
+            const rightSpan = Math.max(window.innerWidth - size - avoidEnd, 0);
+            const totalSpan = leftSpan + rightSpan;
+
+            // Tiny screens: the password text covers the whole width, so fall back to full width.
+            if (totalSpan <= 0) {
+                return Math.random() * Math.max(window.innerWidth - size, 0);
             }
+
+            const offset = Math.random() * totalSpan;
+            return offset < leftSpan ? offset : avoidEnd + (offset - leftSpan);
         }
 
         // Check password and redirect if correct
         function checkPassword() {
-            const d1 = document.getElementById('digit1').value;
-            const d2 = document.getElementById('digit2').value;
-            const d3 = document.getElementById('digit3').value;
-            const d4 = document.getElementById('digit4').value;
-            
-            if (d1 + d2 + d3 + d4 === '1820') {
+            if (passwordInput.value === PASSWORD) {
                 window.location.href = 'cheese.html';
             }
         }
 
-        // Auto-focus next input
-        document.querySelectorAll('.password-digit').forEach((input, index) => {
-            input.addEventListener('input', function() {
-                if (this.value.length === 1 && index < 3) {
-                    document.querySelectorAll('.password-digit')[index + 1].focus();
-                }
+        // The code is typed in one go, but each character is shown in its own box.
+        function renderCode() {
+            digitBoxes.forEach((box, index) => {
+                box.textContent = passwordInput.value[index] || '';
             });
+        }
+
+        passwordInput.addEventListener('input', function () {
+            // Digits only, never longer than the code; this also makes pasting work.
+            passwordInput.value = passwordInput.value.replace(/\D/g, '').slice(0, PASSWORD.length);
+            renderCode();
+            checkPassword();
         });
+
+        // Focus the field up front so the code can be typed without clicking a box first.
+        passwordInput.focus();
 
         generateCubes();
     </script>

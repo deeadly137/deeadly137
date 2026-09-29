@@ -173,6 +173,7 @@
     <div id="start-overlay" class="overlay">
         <h1>Cheese Run</h1>
         <p>Catch the falling stars before they hit the ground. Miss three and it's over.</p>
+        <p>Every 5 stars caught restores a life, up to 3.</p>
         <p><span class="key">A</span> move left &nbsp; <span class="key">L</span> move right &nbsp; <span class="key">Space</span> dash</p>
         <button id="start-btn">Start</button>
     </div>
@@ -204,7 +205,9 @@
 
         const PLAYER_WIDTH = 68;
         const STAR_SIZE = 36;
-        const START_LIVES = 3;
+        const MAX_LIVES = 3;
+        const START_LIVES = MAX_LIVES;
+        const STARS_PER_LIFE = 5; // every this many stars caught regenerates one life
         const DASH_DURATION_FRAMES = 16; // ~0.25s at the 16ms tick below
         const DASH_COOLDOWN_MS = 2000;
         const PLAYER_SPEED = 5;
@@ -223,6 +226,7 @@
         let stars = [];
         let score = 0;
         let lives = START_LIVES;
+        let starsCaught = 0; // progress towards the next regenerated life
         let gameState = 'start'; // 'start' | 'playing' | 'gameover'
         let elapsed = 0; // ms survived, used for difficulty scaling
         let spawnChance = 0.02;
@@ -275,6 +279,7 @@
         function startGame() {
             score = 0;
             lives = START_LIVES;
+            starsCaught = 0;
             elapsed = 0;
             spawnChance = 0.02;
             starSpeedMin = 2;
@@ -443,6 +448,14 @@
                     star.el.remove();
                     stars.splice(i, 1);
                     score += 10;
+                    starsCaught++;
+
+                    // Every few stars caught earns a life back, up to the starting maximum.
+                    if (starsCaught >= STARS_PER_LIFE) {
+                        starsCaught -= STARS_PER_LIFE;
+                        lives = Math.min(lives + 1, MAX_LIVES);
+                    }
+
                     updateHud();
                     continue;
                 }
