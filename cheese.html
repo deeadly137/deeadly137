@@ -51,6 +51,11 @@
             z-index: 5;
         }
 
+        /* The rat sprites are drawn facing left, so walking right mirrors them. */
+        #player.facing-right {
+            transform: scaleX(-1);
+        }
+
         .star {
             position: absolute;
             width: 36px;
@@ -209,7 +214,7 @@
 
         let playerPos = 0;
         let pressedKeys = new Set();
-        let lastDirection = 1;
+        let facing = -1; // -1 = left, 1 = right; rat sprites are drawn facing left
         let canDash = true;
         let isDashing = false;
         let dashTimeLeft = 0;
@@ -255,7 +260,7 @@
             player.style.left = playerPos + 'px';
             player.style.backgroundImage = "url('assets/special/ratidle.gif')";
             pressedKeys.clear();
-            lastDirection = 1;
+            setPlayerFacing(-1); // start unflipped, matching the sprite's natural left-facing pose
             canDash = true;
             isDashing = false;
             dashTimeLeft = 0;
@@ -314,8 +319,9 @@
 
             if (key === 'a' || key === 'l') {
                 pressedKeys.add(key);
-                lastDirection = key === 'a' ? -1 : 1;
                 if (!isDashing) {
+                    // A dash keeps the last faced direction, so only turn while walking.
+                    setPlayerFacing(key === 'a' ? -1 : 1);
                     player.style.backgroundImage = "url('assets/special/ratwalk.gif')";
                 }
             } else if (key === ' ') {
@@ -344,6 +350,14 @@
             return 0; // both or neither pressed: no movement
         }
 
+        // Turns the rat to face the given direction (-1 left / 1 right) and mirrors it when
+        // walking right, since the sprites are drawn facing left.
+        function setPlayerFacing(direction) {
+            if (direction === facing) return;
+            facing = direction;
+            player.classList.toggle('facing-right', direction === 1);
+        }
+
         function startDash() {
             isDashing = true;
             canDash = false;
@@ -357,7 +371,8 @@
             let direction = currentMoveDirection();
 
             if (isDashing) {
-                playerPos += lastDirection * dashSpeed;
+                // Dash keeps the direction the rat was last facing.
+                playerPos += facing * dashSpeed;
                 dashTimeLeft--;
 
                 if (dashTimeLeft <= 0) {
@@ -372,6 +387,7 @@
                     }, DASH_COOLDOWN_MS);
                 }
             } else if (direction !== 0) {
+                setPlayerFacing(direction);
                 playerPos += direction * PLAYER_SPEED;
             }
 
